@@ -87,5 +87,40 @@ if($message == 'hi')
     }
 }
 ```
+
+### How to implement webhook with a Flask in Python
+1. Create a new `app.py` file
+2. Add the following Python code into your `app.py` file
+```py
+from flask import Flask, jsonify, make_response, request
+import json
+
+app = Flask(__name__)
+
+""" The url will be http://server-host:port/webhook """
+@app.route('/webhook', methods=["GET", "POST", "OPTIONS"])
+def webhook():
+
+    response = make_response()
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Content-Type"] = "application/json"
+    response.headers["Access-Control-Allow-Headers"] = "Origin, X-Requested-With,Content-Type,Accept"
+
+
+    if (request.method == "POST"):
+        response.data = json.dumps([{
+          "type": "chat",
+          "text": "Tested from Python Flask" 
+        }])
+    else:
+        response.data = "This page for webhook apps."
+    
+    return response
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+```
+
 ##### You can add a local server with localhost too.
   If you have any issues you can raise one [here](https://github.com/vasani-arpit/wbot/issues/new/choose)
