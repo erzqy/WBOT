@@ -13,15 +13,15 @@ var utils = require("./utils");
  */
 function loadSettings(event, filename, page) 
 {
-    // Check event type
+    /* Check event type */
     if(event === "change")
     {
-        // console.log("Settings changed");
+        /* console.log("Settings changed"); */
 
-        // Load JSON settings file
+        /* Load JSON settings file */
         let botJson = utils.externalInjection(filename);
 
-        // Update settings
+        /* Update settings */
         botJson.then((data) => {
             page.evaluate(`var intents = ${data}`);
         }).catch((err) => {

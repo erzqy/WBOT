@@ -408,41 +408,41 @@ window.WAPI.getChatById = function (id, done) {
  * :rtype: object
  */
 window.WAPI.getUnreadMessagesInChat = function (id, includeMe, includeNotifications, done) {
-    // get chat and its messages
+    /* get chat and its messages */
     let chat     = WAPI.getChat(id);
     let messages = chat.msgs._models;
 
-    // initialize result list
+    /* initialize result list */
     let output = [];
 
-    // look for unread messages, newest is at the end of array
+    /* look for unread messages, newest is at the end of array */
     for (let i = messages.length - 1; i >= 0; i--) {
-        // system message: skip it
+        /* system message: skip it */
         if (i === "remove") {
             continue;
         }
 
-        // get message
+        /* get message */
         let messageObj = messages[i];
 
-        // found a read message: stop looking for others
+        /* found a read message: stop looking for others */
         if (typeof (messageObj.isNewMsg) !== "boolean" || messageObj.isNewMsg === false) {
             continue;
         } else {
             messageObj.isNewMsg = false;
-            // process it
+            /* process it */
             let message = WAPI.processMessageObj(messageObj,
                     includeMe,
                     includeNotifications);
 
-            // save processed message on result list
+            /* save processed message on result list */
             if (message)
                 output.push(message);
         }
     }
-    // callback was passed: run it
+    /* callback was passed: run it */
     if (done !== undefined) done(output);
-    // return result list
+    /* return result list */
     return output;
 }
 ;
@@ -606,7 +606,7 @@ window.WAPI.getMe = function (done) {
 };
 
 window.WAPI.isLoggedIn = function (done) {
-    // Contact always exists when logged in
+    /* Contact always exists when logged in */
     const isLogged = window.Store.Contact && window.Store.Contact.checksum !== undefined;
 
     if (done !== undefined) done(isLogged);
@@ -614,7 +614,7 @@ window.WAPI.isLoggedIn = function (done) {
 };
 
 window.WAPI.isConnected = function (done) {
-    // Phone Disconnected icon appears when phone is disconnected from the tnternet
+    /* Phone Disconnected icon appears when phone is disconnected from the tnternet */
     const isConnected = document.querySelector('*[data-icon="alert-phone"]') !== null ? false : true;
 
     if (done !== undefined) done(isConnected);
@@ -627,8 +627,8 @@ window.WAPI.processMessageObj = function (messageObj, includeMe, includeNotifica
             return WAPI._serializeMessageObj(messageObj);
         else
             return;
-        // System message
-        // (i.e. "Messages you send to this chat and calls are now secured with end-to-end encryption...")
+        /* System message */
+        /* (i.e. "Messages you send to this chat and calls are now secured with end-to-end encryption...") */
     } else if (messageObj.id.fromMe === false || includeMe) {
         return WAPI._serializeMessageObj(messageObj);
     }
@@ -908,9 +908,11 @@ window.WAPI.getUnreadMessages = function (includeMe, includeNotifications, use_u
 
         if (messageGroup.messages.length > 0) {
             output.push(messageGroup);
-        } else { // no messages with isNewMsg true
+        } else { 
+            /* no messages with isNewMsg true */
             if (use_unread_count) {
-                let n = messageGroupObj.unreadCount; // will use unreadCount attribute to fetch last n messages from sender
+                let n = messageGroupObj.unreadCount; 
+                /* will use unreadCount attribute to fetch last n messages from sender */
                 for (let i = messages.length - 1; i >= 0; i--) {
                     let messageObj = messages[i];
                     if (n > 0) {
@@ -919,18 +921,21 @@ window.WAPI.getUnreadMessages = function (includeMe, includeNotifications, use_u
                             messageGroup.messages.unshift(message);
                             n -= 1;
                         }
-                    } else if (n === -1) { // chat was marked as unread so will fetch last message as unread
+                    } else if (n === -1) {
+                         /* chat was marked as unread so will fetch last message as unread */
                         if (!messageObj.isSentByMe) {
                             let message = WAPI.processMessageObj(messageObj, includeMe, includeNotifications);
                             messageGroup.messages.unshift(message);
                             break;
                         }
-                    } else { // unreadCount = 0
+                    } else { 
+                        /* unreadCount = 0 */
                         break;
                     }
                 }
                 if (messageGroup.messages.length > 0) {
-                    messageGroupObj.unreadCount = 0; // reset unread counter
+                    messageGroupObj.unreadCount = 0; 
+                    /* reset unread counter */
                     output.push(messageGroup);
                 }
             }
@@ -1158,8 +1163,8 @@ window.WAPI._newMessagesListener = window.Store.Msg.on('add', (newMessage) => {
             window.WAPI._newMessagesBuffer.push(message);
         }
 
-        // Starts debouncer time to don't call a callback for each message if more than one message arrives
-        // in the same second
+        /* Starts debouncer time to don't call a callback for each message if more than one message arrives */
+        /* in the same second */
         if (!window.WAPI._newMessagesDebouncer && window.WAPI._newMessagesQueue.length > 0) {
             window.WAPI._newMessagesDebouncer = setTimeout(() => {
                 let queuedMessages = window.WAPI._newMessagesQueue;
@@ -1178,7 +1183,7 @@ window.WAPI._newMessagesListener = window.Store.Msg.on('add', (newMessage) => {
                     }
                 });
 
-                // Remove removable callbacks.
+                /* Remove removable callbacks. */
                 removeCallbacks.forEach(function (rmCallbackObj) {
                     let callbackIndex = window.WAPI._newMessagesCallbacks.indexOf(rmCallbackObj);
                     window.WAPI._newMessagesCallbacks.splice(callbackIndex, 1);
@@ -1189,13 +1194,13 @@ window.WAPI._newMessagesListener = window.Store.Msg.on('add', (newMessage) => {
 });
 
 window.WAPI._unloadInform = (event) => {
-    // Save in the buffer the ungot unreaded messages
+    /* Save in the buffer the ungot unreaded messages */
     window.WAPI._newMessagesBuffer.forEach((message) => {
         Object.keys(message).forEach(key => message[key] === undefined ? delete message[key] : '');
     });
     sessionStorage.setItem("saved_msgs", JSON.stringify(window.WAPI._newMessagesBuffer));
 
-    // Inform callbacks that the page will be reloaded.
+    /* Inform callbacks that the page will be reloaded. */
     window.WAPI._newMessagesCallbacks.forEach(function (callbackObj) {
         if (callbackObj.callback !== undefined) {
             callbackObj.callback({ status: -1, message: 'page will be reloaded, wait and register callback again.' });
@@ -1234,9 +1239,9 @@ window.WAPI.getBufferedNewMessages = function (done) {
 /** End new messages observable functions **/
 
 window.WAPI.sendImage = function (imgBase64, chatid, filename, caption, done) {
-//var idUser = new window.Store.UserConstructor(chatid);
+/* var idUser = new window.Store.UserConstructor(chatid); */
 var idUser = new window.Store.UserConstructor(chatid, { intentionallyUsePrivateConstructor: true });
-// create new chat
+/* create new chat */
 return Store.Chat.find(idUser).then((chat) => {
     var mediaBlob = window.WAPI.base64ImageToFile(imgBase64, filename);
     var mc = new Store.MediaCollection(chat);
