@@ -688,12 +688,12 @@ window.WAPI.getMessageById = function (id, done) {
 };
 
 window.WAPI.ReplyMessage = function (idMessage, message, done) {
-    var messageObject = window.Store.Msg.get(idMessage);
+    var messageObject = window.Store.Msg.find(idMessage);
     if (messageObject === undefined) {
         if (done !== undefined) done(false);
         return false;
     }
-    messageObject = messageObject.value();
+    /* messageObject = messageObject.value(); */
 
     const chat = WAPI.getChat(messageObject.chat.id)
     if (chat !== undefined) {

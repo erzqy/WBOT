@@ -59,7 +59,7 @@ WAPI.waitNewMessages(false, async (data) => {
 
                             if (itemResponse.type in messageHandlers) {
 
-                                messageHandlers[itemResponse.type](message, itemResponse);
+                                messageHandlers[itemResponse.type](getChatId(message), itemResponse);
                             } else {
 
                                 wLog(`Handler for "${itemResponse.type}" doesn't exists`)
