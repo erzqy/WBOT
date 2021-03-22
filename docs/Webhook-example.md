@@ -100,8 +100,15 @@ app = Flask(__name__)
 """ The url will be http://server-host:port/webhook """
 @app.route('/webhook', methods=["GET", "POST", "OPTIONS"])
 def webhook():
+  """Method for handle webhook data
+
+  Returns:
+      String: Return string for web requests.
+  """
 
     response = make_response()
+
+    """ Very important to add this to headers """
     response.headers["Access-Control-Allow-Origin"] = "*"
     response.headers["Content-Type"] = "application/json"
     response.headers["Access-Control-Allow-Headers"] = "Origin, X-Requested-With,Content-Type,Accept"
@@ -120,6 +127,10 @@ def webhook():
 if __name__ == '__main__':
     app.run(debug=True)
 
+```
+3. Run flask by following command on shell
+```sh
+$ python app.py
 ```
 
 ##### You can add a local server with localhost too.
