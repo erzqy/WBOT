@@ -62,4 +62,5 @@ typings/
 ChromeSession*
 win*
 chromium-data
+linux-*
 .idea
