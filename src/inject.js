@@ -1,102 +1,83 @@
-//Updating string prototype to support variables
-String.prototype.fillVariables = String.prototype.fillVariables ||
-    function () {
-        "use strict";
-        var str = this.toString();
-        if (arguments.length) {
-            var t = typeof arguments[0];
-            var key;
-            var args = ("string" === t || "number" === t) ?
-                Array.prototype.slice.call(arguments)
-                : arguments[0];
+/* Short function for logging */
+var cLog = console.log;
+var wLog = window.log;
 
-            for (key in args) {
-                str = str.replace(new RegExp("\\[#" + key + "\\]", "gi"), args[key]);
+var getChatId = (message) => {
+    return message.chatId._serialized;
+};
+
+var messageHandlers = {
+    "chat": (chatId, response) => {
+        wLog(`Replaying ${response.type} then ${response.text}`);
+        if (response.reply !== undefined) {
+            try {
+                WAPI.ReplyMessage(response.reply, response.text);
+            } catch (e) {
+                wLog(e.stack);
             }
+        } else {
+            WAPI.sendMessage(chatId, response.text);
         }
-
-        return str;
-    };
+    },
+    "image": (chatId, response) => {
+        try {
+            wLog(`Replaying ${response.type} then ${response.caption}`);
+            WAPI.sendImage(response.data, chatId, response.filename, response.caption);
+        } catch (e) {
+            wLog("Error on send Image");
+        }
+    }
+}
 
 WAPI.waitNewMessages(false, async (data) => {
+
     for (let i = 0; i < data.length; i++) {
-        //fetch API to send and receive response from server
+        /* fetch API to send and receive response from server */
         let message = data[i];
-        body = {};
-        body.text = message.body;
-        body.type = 'message';
-        body.user = message.chatId._serialized;
-        //body.original = message;
+
+        /* Logging messages  */
+        wLog(`Incoming ${message.type} message from ${message.sender.pushname} (${message.from}) to ${message.to}`);
+
+        /* This conditions for webhook */
         if (intents.appconfig.webhook) {
             fetch(intents.appconfig.webhook, {
                 method: "POST",
-                body: JSON.stringify(body),
+                body: JSON.stringify(message),
                 headers: {
                     'Content-Type': 'application/json'
                 }
             }).then((resp) => resp.json()).then(function (response) {
-                //response received from server
-                console.log(response);
-                WAPI.sendSeen(message.chatId._serialized);
-                //replying to the user based on response
+
+                /* replying to the user based on response from webhook */
                 if (response && response.length > 0) {
+
                     response.forEach(itemResponse => {
-                        itemResponse.text = itemResponse.text.fillVariables({ name: message.sender.pushname, phoneNumber: message.sender.id.user });
-                        WAPI.sendMessage2(message.chatId._serialized, itemResponse.text);
-                        //sending files if there is any 
-                        if (itemResponse.files && itemResponse.files.length > 0) {
-                            itemResponse.files.forEach((itemFile) => {
-                                WAPI.sendImage(itemFile.file, message.chatId._serialized, itemFile.name);
-                            })
+                        try {
+                            if (itemResponse.seen !== undefined) {
+                                WAPI.sendSeen(getChatId(message));
+                            }
+
+                            if (itemResponse.type in messageHandlers) {
+
+                                messageHandlers[itemResponse.type](message, itemResponse);
+                            } else {
+
+                                wLog(`Handler for "${itemResponse.type}" doesn't exists`)
+                            }
+                        } catch (e) {
+                            wLog("Error on each response", itemResponse)
+                            wLog(e.stack);
                         }
                     });
                 }
             }).catch(function (error) {
-                console.log(error);
+                cLog(error);
             });
         }
-        window.log(`Message from ${message.chatId.user} checking..`);
-        if (intents.blocked.indexOf(message.chatId.user) >= 0) {
-            window.log("number is blocked by BOT. no reply");
-            return;
-        }
-        if (message.type == "chat") {
-            //message.isGroupMsg to check if this is a group
-            if (message.isGroupMsg == true && intents.appconfig.isGroupReply == false) {
-                window.log("Message received in group and group reply is off. so will not take any actions.");
-                return;
-            }
-            var exactMatch = intents.bot.find(obj => obj.exact.find(ex => ex == message.body.toLowerCase()));
-            var response = "";
-            if (exactMatch != undefined) {
-                response = await resolveSpintax(exactMatch.response);
-                window.log(`Replying with ${response}`);
-            } else {
-                response = await resolveSpintax(intents.noMatch);
-                window.log(`No exact match found. So replying with ${response} instead`);
-            }
-            var PartialMatch = intents.bot.find(obj => obj.contains.find(ex => message.body.toLowerCase().search(ex) > -1));
-            if (PartialMatch != undefined) {
-                response = await resolveSpintax(PartialMatch.response);
-                window.log(`Replying with ${response}`);
-            } else {
-                console.log("No partial match found");
-            }
-            WAPI.sendSeen(message.chatId._serialized);
-            response = response.fillVariables({ name: message.sender.pushname, phoneNumber: message.sender.id.user })
-            WAPI.sendMessage2(message.chatId._serialized, response);
-            if ((exactMatch || PartialMatch).file != undefined) {
-                files = await resolveSpintax((exactMatch || PartialMatch).file);
-                window.getFile(files).then((base64Data) => {
-                    //console.log(file);
-                    WAPI.sendImage(base64Data, message.chatId._serialized, (exactMatch || PartialMatch).file);
-                }).catch((error) => {
-                    window.log("Error in sending file\n" + error);
-                })
-            }
-        }
+
     }
 });
+
 WAPI.addOptions = function () {
     var suggestions = "";
     intents.smartreply.suggestions.map((item) => {
@@ -119,8 +100,8 @@ WAPI.addOptions = function () {
     for (let i = 0; i < suggestions.length; i++) {
         const suggestion = suggestions[i];
         suggestion.addEventListener("click", (event) => {
-            console.log(event.target.textContent);
-            window.sendMessage(event.target.textContent).then(text => console.log(text));
+            cLog(event.target.textContent);
+            window.sendMessage(event.target.textContent).then(text => clog(text));
         });
     }
     mainDiv.children[mainDiv.children.length - 5].querySelector("div > div div[tabindex]").scrollTop += 100;
