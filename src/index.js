@@ -13,14 +13,14 @@ var configs = require("../bot");
 var settings = require('./settings');
 var fs = require("fs");
 
-//console.log(ps);
+/* console.log(ps); */
 
-//console.log(process.cwd());
+/* console.log(process.cwd()); */
 
 async function Main() {
 
     try {
-        //console.log(configs);
+        /* console.log(configs); */
         var page;
         await downloadAndStartThings();
         var isLogin = await checkLogin();
@@ -58,13 +58,13 @@ async function Main() {
         progressBar.start(100, 0);
         var revNumber = await rev.getRevNumber();
         const revisionInfo = await browserFetcher.download(revNumber, (download, total) => {
-            //console.log(download);
+            /* console.log(download); */
             var percentage = (download * 100) / total;
             progressBar.update(percentage);
         });
         progressBar.update(100);
         spinner.stop("Downloading chrome ... done!");
-        //console.log(revisionInfo.executablePath);
+        /* console.log(revisionInfo.executablePath); */
         spinner.start("Launching Chrome");
         var pptrArgv = [];
         if (argv.proxyURI) {
@@ -93,15 +93,15 @@ async function Main() {
                 await page.authenticate({ username: argv.username, password: argv.password });
             }
             page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36");
-            await page.goto('https://web.whatsapp.com', {
+            await page.goto('https://web.whatsapp.com/', {
                 waitUntil: 'networkidle0',
                 timeout: 0
             });
-            //console.log(contents);
-            //await injectScripts(page);
+            /* console.log(contents); */
+            /* await injectScripts(page); */
             botjson.then((data) => {
                 page.evaluate("var intents = " + data);
-                //console.log(data);
+                /* console.log(data); */
             }).catch((err) => {
                 console.log("there was an error \n" + err);
             });
@@ -110,11 +110,11 @@ async function Main() {
                 console.log(message);
             });
 
-            // When the settings file is edited multiple calls are sent to function. This will help
-            // to prevent from getting corrupted settings data
+            /* When the settings file is edited multiple calls are sent to function. This will help */
+            /* to prevent from getting corrupted settings data */
             let timeout = 5000;
             
-            // Register a filesystem watcher
+            /* Register a filesystem watcher */
             fs.watch(constants.BOT_SETTINGS_FILE, (event, filename) => {
                 setTimeout(()=> {
                     settings.LoadBotSettings(event, filename, page);
@@ -143,11 +143,11 @@ async function Main() {
 
     async function checkLogin() {
         spinner.start("Page is loading");
-        //TODO: avoid using delay and make it in a way that it would react to the event. 
+        /* TODO: avoid using delay and make it in a way that it would react to the event.  */
         await utils.delay(10000);
-        //console.log("loaded");
+        /* console.log("loaded"); */
         var output = await page.evaluate("localStorage['last-wid']");
-        //console.log("\n" + output);
+        /* console.log("\n" + output); */
         if (output) {
             spinner.stop("Looks like you are already logged in");
             await injectScripts(page);
@@ -157,26 +157,26 @@ async function Main() {
         return output;
     }
 
-    //TODO: add logic to refresh QR.
+    /* TODO: add logic to refresh QR. */
     async function getAndShowQR() {
-        //TODO: avoid using delay and make it in a way that it would react to the event. 
-        //await utils.delay(10000);
+        /* TODO: avoid using delay and make it in a way that it would react to the event.  */
+        /* await utils.delay(10000); */
         var scanme = "img[alt='Scan me!'], canvas";
         await page.waitForSelector(scanme);
         var imageData = await page.evaluate(`document.querySelector("${scanme}").parentElement.getAttribute("data-ref")`);
-        //console.log(imageData);
+        /* console.log(imageData); */
         qrcode.generate(imageData, { small: true });
         spinner.start("Waiting for scan \nKeep in mind that it will expire after few seconds");
         var isLoggedIn = await injectScripts(page);
         while (!isLoggedIn) {
-            //console.log("page is loading");
-            //TODO: avoid using delay and make it in a way that it would react to the event. 
+            /* console.log("page is loading"); */
+            /* TODO: avoid using delay and make it in a way that it would react to the event.  */
             await utils.delay(300);
             isLoggedIn = await injectScripts(page);
         }
         if (isLoggedIn) {
             spinner.stop("Looks like you are logged in now");
-            //console.log("Welcome, WBOT is up and running");
+            /* console.log("Welcome, WBOT is up and running"); */
         }
     }
 
@@ -186,9 +186,9 @@ async function Main() {
         await page.evaluate(`
             var observer = new MutationObserver((mutations) => {
                 for (var mutation of mutations) {
-                    //console.log(mutation);
+                    /* console.log(mutation); */
                     if (mutation.addedNodes.length && mutation.addedNodes[0].id === 'main') {
-                        //newChat(mutation.addedNodes[0].querySelector('.copyable-text span').innerText);
+                        /* newChat(mutation.addedNodes[0].querySelector('.copyable-text span').innerText); */
                         console.log("%cChat changed !!", "font-size:x-large");
                         WAPI.addOptions();
                     }
@@ -200,7 +200,7 @@ async function Main() {
         page.waitForSelector("#main", { timeout: 0 }).then(async () => {
             await page.exposeFunction("sendMessage", async message => {
                 return new Promise(async (resolve, reject) => {
-                    //send message to the currently open chat using power of puppeteer 
+                    /* send message to the currently open chat using power of puppeteer  */
                     await page.type("#main div.selectable-text[data-tab]", message);
                     if (configs.smartreply.clicktosend) {
                         await page.click("#main > footer > div.copyable-area > div:nth-child(3) > button");
