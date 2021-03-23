@@ -8,7 +8,7 @@ var getChatId = (message) => {
 
 var messageHandlers = {
     "chat": (chatId, response) => {
-        wLog(`Replaying ${response.type} then ${response.text}`);
+        /* wLog(`Replaying ${response.type} from ${response.text}`); */
         if (response.reply !== undefined) {
             try {
                 WAPI.ReplyMessage(response.reply, response.text);
@@ -21,7 +21,7 @@ var messageHandlers = {
     },
     "image": (chatId, response) => {
         try {
-            wLog(`Replaying ${response.type} then ${response.caption}`);
+            /* wLog(`Replaying ${response.type} from ${response.caption}`); */
             WAPI.sendImage(response.data, chatId, response.filename, response.caption);
         } catch (e) {
             wLog("Error on send Image");
