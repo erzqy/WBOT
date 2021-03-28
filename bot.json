@@ -2,7 +2,7 @@
     "appconfig": {
         "headless": true,
         "isGroupReply": true,
-        "webhook": "http://127.0.0.1:5000/webhook"
+        "webhook": "http://localhost/webhook"
     },
     "bot": [],
     "blocked": [],
