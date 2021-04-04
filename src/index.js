@@ -72,6 +72,18 @@ async function Main() {
         }
         const extraArguments = Object.assign({});
         extraArguments.userDataDir = constants.DEFAULT_DATA_DIR;
+
+        if (appconfig.appconfig.executablePath !== null) {
+            revisionInfo.executablePath = appconfig.appconfig.executablePath;
+        
+        }if (appconfig.appconfig.DEFAULT_DATA_DIR !== null) {
+            extraArguments.userDataDir = appconfig.appconfig.DEFAULT_DATA_DIR;
+        }
+        
+        if (appconfig.appconfig.DEFAULT_CHROMIUM_ARGS !== null) {
+            constants.DEFAULT_CHROMIUM_ARGS = appconfig.appconfig.DEFAULT_CHROMIUM_ARGS;
+        }
+
         const browser = await puppeteer.launch({
             executablePath: revisionInfo.executablePath,
             defaultViewport: null,
@@ -92,7 +104,12 @@ async function Main() {
             if (argv.proxyURI) {
                 await page.authenticate({ username: argv.username, password: argv.password });
             }
-            page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36");
+
+            if (appconfig.appconfig.UserAgent !== null) {
+                page.setUserAgent(appconfig.appconfig.UserAgent);
+            } else {
+                page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36");
+            }
             await page.goto('https://web.whatsapp.com/', {
                 waitUntil: 'networkidle0',
                 timeout: 0
