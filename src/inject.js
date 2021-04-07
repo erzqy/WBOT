@@ -11,7 +11,7 @@ var messageHandlers = {
         /* wLog(`Replaying ${response.type} from ${response.text}`); */
         if (response.reply !== undefined) {
             try {
-                WAPI.ReplyMessage(response.reply, response.text);
+                WAPI.ReplyMessage(chatId, response.text, response.reply);
             } catch (e) {
                 wLog(e.stack);
             }
@@ -62,7 +62,8 @@ WAPI.waitNewMessages(false, async (data) => {
                                 messageHandlers[itemResponse.type](getChatId(message), itemResponse);
                             } else {
 
-                                wLog(`Handler for "${itemResponse.type}" doesn't exists`)
+                                wLog(`Handler for "${itemResponse.type}" doesn't exists`);
+                                wLog(itemResponse);
                             }
                         } catch (e) {
                             wLog("Error on each response", itemResponse)
@@ -71,7 +72,7 @@ WAPI.waitNewMessages(false, async (data) => {
                     });
                 }
             }).catch(function (error) {
-                cLog(error);
+                wLog("Has error sending to webhook.", error);
             });
         }
 
