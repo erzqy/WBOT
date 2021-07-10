@@ -22,21 +22,33 @@ var messageHandlers = {
     "image": (chatId, response) => {
         try {
             /* wLog(`Replaying ${response.type} from ${response.caption}`); */
-            WAPI.sendImage(response.data, chatId, response.filename, response.caption);
+            WAPI.sendImage(response.data, chatId, response.filename, response.text);
         } catch (e) {
             wLog("Error on send Image");
         }
     }
 }
 
+var message_missed = [];
+
 WAPI.waitNewMessages(false, async (data) => {
+
+/*
+    temp = message_missed;
+    message_missed = [];
+    for (let i = 0; i < data.length; i++) {
+        temp[temp.length] = data[i]
+    }
+*/
 
     for (let i = 0; i < data.length; i++) {
         /* fetch API to send and receive response from server */
         let message = data[i];
 
         /* Logging messages  */
-        wLog(`Incoming ${message.type} message from ${message.sender.pushname} (${message.from}) to ${message.to}`);
+        timestamp = new Date(Date.now());
+
+        wLog(`[${timestamp.toLocaleString()}] Incoming ${message.type} message from ${message.sender.pushname} (${message.from}) to ${message.to}`);
 
         /* This conditions for webhook */
         if (intents.appconfig.webhook) {
@@ -73,6 +85,9 @@ WAPI.waitNewMessages(false, async (data) => {
                 }
             }).catch(function (error) {
                 wLog("Has error sending to webhook.", error);
+                /*message_missed[message_missed.length] = message;*/
+                /*wLog("Saved for letter.");*/
+                /*wLog(message_missed.length);*/
             });
         }
 
