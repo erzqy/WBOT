@@ -125,7 +125,7 @@ if (!window.Store) {
             }, ['parasite']);
         } else {
             let tag = new Date().getTime();
-            webpackChunkbuild.push([
+            webpackChunkwhatsapp_web_client.push([
                 ["parasite" + tag],
                 {
 
