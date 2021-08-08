@@ -11,7 +11,7 @@ var messageHandlers = {
         /* wLog(`Replaying ${response.type} from ${response.text}`); */
         if (response.reply !== undefined) {
             try {
-                WAPI.ReplyMessage(chatId, response.text, response.reply);
+                WAPI.ReplyMessage(response.reply, response.text);
             } catch (e) {
                 wLog(e.stack);
             }

@@ -745,38 +745,58 @@ window.WAPI.getMessageById = function (id, done) {
 };
 
 
-window.WAPI.ReplyMessage = async function (chatId, body, quotedMsg) {
-    if (typeof quotedMsg !== "object") quotedMsg = Store.Msg.get(quotedMsg)
-
-    var chat = Store.Chat.get(chatId);
-    if (!chat) return false;
-    let extras = {};
-    if (quotedMsg) {
-        extras = {
-            quotedParticipant: quotedMsg.author || quotedMsg.from,
-            quotedStanzaID: quotedMsg.id.id
-        };
+window.WAPI.ReplyMessage = function (idMessage, message, done) {
+    window.log(idMessage);
+    var messageObject = window.Store.Msg.get(idMessage);
+    if (messageObject === undefined) {
+        if (done !== undefined) done(false);
+        return false;
     }
-    var tempMsg = Object.create(Store.Msg.models.filter(msg => msg.__x_isSentByMe && !msg.quotedMsg)[0]);
-    var newId = window.WAPI.getNewMessageId(chatId);
-    var extend = {
-        ack: 0,
-        id: newId,
-        local: !0,
-        self: "out",
-        t: parseInt(new Date().getTime() / 1000),
-        to: new Store.WidFactory.createWid(chatId),
-        isNewMsg: !0,
-        type: "chat",
-        quotedMsg,
-        body,
-        ...extras
-    };
-    Object.assign(tempMsg, extend);
-    const res = await Promise.all(await Store.addAndSendMsgToChat(chat, tempMsg));
-    if (res[1] != 'success') return false;
-    return res[0].id._serialized;
+    
+    const chat = WAPI.getChat(messageObject.chat.id)
+    
+    window.log(chat);
+    
+    if (chat !== undefined) {
+        if (done !== undefined) {
+            chat.sendMessage(message, null, messageObject).then(function () {
+                function sleep(ms) {
+                    return new Promise(resolve => setTimeout(resolve, ms));
+                }
+
+                var trials = 0;
+
+                function check() {
+                    for (let i = chat.msgs.models.length - 1; i >= 0; i--) {
+                        let msg = chat.msgs.models[i];
+
+                        if (!msg.senderObj.isMe || msg.body != message) {
+                            continue;
+                        }
+                        done(WAPI._serializeMessageObj(msg));
+                        return True;
+                    }
+                    trials += 1;
+                    console.log(trials);
+                    if (trials > 30) {
+                        done(true);
+                        return;
+                    }
+                    sleep(500).then(check);
+                }
+                check();
+            });
+            return true;
+        } else {
+            chat.sendMessage(message, null, messageObject);
+            return true;
+        }
+    } else {
+        if (done !== undefined) done(false);
+        return false;
+    }
 };
+
 
 window.WAPI.sendMessageToID = function (id, message, done) {
     try {
